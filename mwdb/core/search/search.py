@@ -1,4 +1,5 @@
-from typing import Any, List, Optional, Type, TypeVar, Union
+from collections import namedtuple
+from typing import Any, List, Optional, Type, TypeVar, Union, NamedTuple, overload
 
 from flask import g
 from luqum.parser import parser
@@ -17,18 +18,84 @@ from luqum.tree import (
     Word,
 )
 from luqum.utils import LuceneTreeVisitorV2
+from luqum.visitor import TreeVisitor
 from sqlalchemy import and_, not_, or_
 from sqlalchemy.orm import aliased
 
 from mwdb.model import Object, db
 
 from .exceptions import FieldNotQueryableException, UnsupportedGrammarException
-from .mappings import get_field_mapper
-from .tree import Subquery
+from .mappings import get_field_mapper, type_field_mapping
+from .tree import QueryTerm, QueryRange, Subquery
 
 T = TypeVar("T", bound=Term)
 # SQLAlchemy doesn't provide typings
 Condition = Any
+
+
+class QueryBuilderContext(NamedTuple):
+    queried_type: Type[Object] = Object
+    accepts_range: bool = False
+    has_search_field: bool = False
+
+
+class QueryBuilder(TreeVisitor):
+    generic_visitor_method_name = "visit_unsupported"
+
+    # Visitor methods for values
+
+    def visit_term(self, node: Term, context: QueryBuilderContext):
+        query = QueryTerm(node)
+
+        if context.accepts_range:
+            # If field accepts range: check if term is not a range (">=20")
+            query = QueryRange.from_term(query) or query
+
+        if not context.has_search_field:
+            # If there is no search field assigned, we need to put a default field
+            search_field = SearchField(
+                name=type_field_mapping[context.queried_type.__name__],
+                expr=node
+            )
+            return self.visit(search_field, context)
+        return query
+
+    visit_word = visit_term
+    visit_phrase = visit_term
+
+    def visit_range(self, node: Range, context: QueryBuilderContext):
+        if not context.has_search_field:
+            raise FieldNotQueryableException(
+                "You have to specify field, check help for more information"
+            )
+
+        if not context.accepts_range:
+            raise UnsupportedGrammarException(
+                "Range queries are not supported for this type of field"
+            )
+
+        child_context = context._replace(accepts_range=False)
+        return QueryRange(
+            node,
+            low=self.visit(node.low, child_context),
+            high=self.visit(node.high, child_context),
+            include_low=node.include_low,
+            include_high=node.include_high
+        )
+
+    # Visitor methods for fields
+
+    def visit_search_field(self, node: SearchField, context: QueryBuilderContext):
+        field_mapper, name_remainder = get_field_mapper(context.queried_type, node.name)
+
+        context.field_mapper = field_mapper
+        condition = field_mapper.get_condition(
+            self.visit(node.expr, parents + [node], context), name_remainder
+        )
+        context.field_mapper = None
+
+
+
 
 
 class SQLQueryBuilderContext:

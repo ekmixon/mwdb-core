@@ -25,6 +25,13 @@ object_mapping: Dict[str, Type[Object]] = {
     "blob": TextBlob,
 }
 
+type_field_mapping: Dict[str, str] = {
+    Object.__name__: "object",
+    File.__name__: "file",
+    Config.__name__: "config",
+    TextBlob.__name__: "blob"
+}
+
 field_mapping: Dict[str, Dict[str, BaseField]] = {
     Object.__name__: {
         "dhash": StringField(Object.dhash),

@@ -1,5 +1,9 @@
 import re
-from luqum.tree import Item, Term, Phrase, FieldGroup
+from typing import List, Union, Type
+from luqum.tree import Item, Term, Phrase, FieldGroup, SearchField, Group
+from .fields import BaseField
+
+from mwdb.model import Object
 
 
 class QueryNode:
@@ -8,6 +12,10 @@ class QueryNode:
 
 
 class QueryValue(QueryNode):
+    pass
+
+
+class QueryTerm(QueryValue):
     WILDCARD_MAP = {"*": "%", "?": "_"}
 
     @staticmethod
@@ -40,19 +48,63 @@ class QueryValue(QueryNode):
             return self.unescaped_value
 
 
-class QueryRange:
-    def __init__(self, node, low, high, include_low, include_high):
-        pass
+class QueryRange(QueryValue):
+    def __init__(self, node: Item, low: Union[QueryTerm, str], high: Union[QueryTerm, str],
+                 include_low: bool = False, include_high: bool = False):
+        super().__init__(node)
+        self.low = low.value if isinstance(low, QueryTerm) else low
+        self.high = high.value if isinstance(high, QueryTerm) else high
+        self.include_low = include_low
+        self.include_high = include_high
+
+    @staticmethod
+    def from_term(term: QueryTerm):
+        if term.value.startswith(">="):
+            value = term.value[2:]
+            return QueryRange(
+                node=term.node, low=value, high="*", include_low=True
+            )
+        elif term.value.startswith(">"):
+            value = term.value[1:]
+            return QueryRange(
+                node=term.node, low=value, high="*"
+            )
+        elif term.value.startswith("<="):
+            value = term.value[2:]
+            return QueryRange(
+                node=term.node, low="*", high=value, include_high=True
+            )
+        elif term.value.startswith("<"):
+            value = term.value[1:]
+            return QueryRange(
+                node=term.node, low="*", high=value
+            )
+        else:
+            return None
 
 
-class QueryGroup:
-    def __init__(self, node):
-        pass
+class QueryCondition(QueryNode):
+    def get_condition(self):
+        raise NotImplementedError
+
+
+class QueryGroup(QueryCondition):
+    def __init__(self, node: Group, condition: QueryCondition):
+        super().__init__(node)
+        self.condition = condition
+
+    def get_condition(self):
+        return self.condition.get_condition()
 
 
 class QuerySearchField:
-    def __init__(self, node, field, remainder, queried_type, value):
-        pass
+    def __init__(self, node: SearchField, field: BaseField, remainder: List[str], queried_type: Type[Object],
+                 value: QueryValue):
+        super().__init__(node)
+        self.field = field
+        self.remainder = remainder
+        self.queried_type = queried_type
+        self.value = value
 
 
 class QueryAndOperation:
