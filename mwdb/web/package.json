@@ -17,7 +17,7 @@
     "history": "^4.10.1",
     "identicon.js": "^2.3.2",
     "jquery": "^3.3.1",
-    "lodash": "^4.17.10",
+    "lodash": "^4.17.20",
     "popper.js": "^1.16.1",
     "query-string": "^5.1.1",
     "react": "^16.13.1",
@@ -32,16 +32,19 @@
     "react-modal": "^3.5.1",
     "react-router": "^5.2.0",
     "react-router-dom": "^5.2.0",
-    "react-scripts": "3.4.0",
+    "react-scripts": "4.0.0",
     "readable-timestamp": "^0.2.0",
     "sha1": "^1.1.1",
-    "swagger-ui-react": "3.30.2"
+    "swagger-ui-react": "3.30.2",
+    "@snyk/protect": "latest"
   },
   "scripts": {
     "start": "react-app-rewired start",
     "build": "madge --circular --extensions js src/ && react-app-rewired build",
     "test": "react-app-rewired test --env=jsdom",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "prepublish": "npm run snyk-protect",
+    "snyk-protect": "snyk-protect"
   },
   "devDependencies": {
     "customize-cra": "^1.0.0",
@@ -67,5 +70,6 @@
   "prettier": {
     "trailingComma": "es5",
     "tabWidth": 4
-  }
+  },
+  "snyk": true
 }
