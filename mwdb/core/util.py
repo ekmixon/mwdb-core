@@ -85,13 +85,11 @@ def calc_magic(stream):
     magic_cookie = magic.magic_open(magic.MAGIC_SYMLINK)
     magic.magic_load(magic_cookie, None)
     try:
-        fd_path = get_fd_path(stream)
-        if fd_path:
+        if fd_path := get_fd_path(stream):
             return magic.maybe_decode(magic.magic_file(magic_cookie, fd_path))
-        else:
-            # Handle BytesIO in-memory streams
-            stream.seek(0, os.SEEK_SET)
-            return magic.maybe_decode(magic.magic_buffer(magic_cookie, stream.read()))
+        # Handle BytesIO in-memory streams
+        stream.seek(0, os.SEEK_SET)
+        return magic.maybe_decode(magic.magic_buffer(magic_cookie, stream.read()))
     finally:
         magic.magic_close(magic_cookie)
     return None
@@ -142,9 +140,7 @@ def is_true(flag):
     if isinstance(flag, str) and flag and flag.lower() in ["true", "1"]:
         return True
     # True, 1
-    if (isinstance(flag, int) or isinstance(flag, bool)) and flag:
-        return True
-    return False
+    return bool(isinstance(flag, (int, bool)) and flag)
 
 
 def is_subdir(parent, child):

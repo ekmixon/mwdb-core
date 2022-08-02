@@ -61,7 +61,7 @@ class ObjectUploader:
 
         # Validate metakeys
         metakeys = params["metakeys"]
-        for metakey in params["metakeys"]:
+        for metakey in metakeys:
             key = metakey["key"]
             if not MetakeyDefinition.query_for_set(key).first():
                 raise NotFound(
@@ -156,8 +156,7 @@ class ObjectResource(Resource):
             if pivot_obj is None:
                 raise NotFound("Object specified in 'older_than' parameter not found")
 
-        query = obj["query"]
-        if query:
+        if query := obj["query"]:
             try:
                 db_query = SQLQueryBuilder().build_query(
                     query, queried_type=self.ObjectType
@@ -234,12 +233,7 @@ class ObjectItemResource(Resource, ObjectUploader):
             # If request is application/json: all args are in JSON
             args = json.loads(request.get_data(parse_form_data=True, as_text=True))
         else:
-            if "json" in request.form:
-                # If request is multipart/form-data:
-                # some args are in JSON and some are part of form
-                args = json.loads(request.form["json"])
-            else:
-                args = {}
+            args = json.loads(request.form["json"]) if "json" in request.form else {}
             if request.form.get("metakeys"):
                 args["metakeys"] = request.form["metakeys"]
             if request.form.get("upload_as"):
@@ -339,8 +333,7 @@ class ObjectCountResource(Resource):
         schema = ObjectCountRequestSchema()
         obj = load_schema(request.args, schema)
 
-        query = obj["query"]
-        if query:
+        if query := obj["query"]:
             try:
                 db_query = SQLQueryBuilder().build_query(
                     query, queried_type=get_type_from_str(type)

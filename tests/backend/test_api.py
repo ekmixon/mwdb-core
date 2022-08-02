@@ -106,11 +106,11 @@ def test_relations(num_parents, num_children):
     parents_id = set()
     children_id = set()
 
-    for p in range(num_parents):
+    for _ in range(num_parents):
         parent = test.add_sample()
         parents_id.add(parent['id'])
 
-    for c in range(num_children):
+    for _ in range(num_children):
         content = rand_string()
         for p_hash in parents_id:
             child_res = test.add_sample(content, content, p_hash)
@@ -143,7 +143,7 @@ def test_add_tags():
     tags_returned = [t['tag'] for t in tags_response]
 
     assert len(tags_returned) == len(tags_expected)
-    assert all([t in tags_returned for t in tags_expected])
+    assert all(t in tags_returned for t in tags_expected)
 
 
 def test_delete_tags():
@@ -183,7 +183,7 @@ def test_comment(num_comments):
 
     comments = test.get_comments(identifier)
     assert len(comments) == num_comments
-    assert all([c['comment'] in expected_comments for c in comments])
+    assert all(c['comment'] in expected_comments for c in comments)
 
 
 def test_download_sample():
@@ -206,11 +206,10 @@ def test_download_sample_with_token():
 
     token = test.get_download_token(sample['id'])
     r = requests.get(
-        test.mwdb_url + f'/file/{sample["id"]}/download',
-        params={
-            "token": token
-        }
+        f'{test.mwdb_url}/file/{sample["id"]}/download',
+        params={"token": token},
     )
+
     r.raise_for_status()
     downloaded = r.text
 

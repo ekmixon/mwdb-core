@@ -110,20 +110,19 @@ def test_remove_group_and_user():
         session.get_group(Workgroup.identity)
 
     a_shares = session.get_shares(SampleA.dhash)["shares"]
-    assert not any([(share["group_name"] == Workgroup.identity) for share in a_shares])
+    assert all(share["group_name"] != Workgroup.identity for share in a_shares)
 
     b_shares = session.get_shares(SampleB.dhash)["shares"]
-    assert not any([(share["group_name"] == Workgroup.identity) for share in b_shares])
+    assert all(share["group_name"] != Workgroup.identity for share in b_shares)
     assert any(
-        [
-            (
-                share["group_name"] == Alice.identity
-                and share["related_user_login"] == Alice.identity
-                and share["related_object_dhash"] == SampleB.dhash
-            )
-            for share in b_shares
-        ]
+        (
+            share["group_name"] == Alice.identity
+            and share["related_user_login"] == Alice.identity
+            and share["related_object_dhash"] == SampleB.dhash
+        )
+        for share in b_shares
     )
+
 
     session.remove_user(Alice.identity)
 
@@ -132,14 +131,12 @@ def test_remove_group_and_user():
 
     b_shares = session.get_shares(SampleB.dhash)["shares"]
     assert not any(
-        [
-            (
-                share["group_name"] == Alice.identity
-                and share["related_user_login"] == Alice.identity
-                and share["related_object_dhash"] == SampleB.dhash
-            )
-            for share in b_shares
-        ]
+        (
+            share["group_name"] == Alice.identity
+            and share["related_user_login"] == Alice.identity
+            and share["related_object_dhash"] == SampleB.dhash
+        )
+        for share in b_shares
     )
 
 
@@ -166,14 +163,15 @@ def test_multigroup_sharing():
         Alice.identity,
         Workgroup.identity,
     }
-    assert set(gr["group_name"] for gr in shares["shares"]) == {
+    assert {gr["group_name"] for gr in shares["shares"]} == {
         Alice.identity,
         Workgroup.identity,
     }
 
+
     shares = Bob.session().get_shares(File.dhash)
     assert set(shares["groups"]) == {"public", "registered", Bob.identity}
-    assert set(gr["group_name"] for gr in shares["shares"]) == {Bob.identity}
+    assert {gr["group_name"] for gr in shares["shares"]} == {Bob.identity}
 
     shares = Joe.session().get_shares(File.dhash)
     groups = {
@@ -185,6 +183,12 @@ def test_multigroup_sharing():
         Workgroup.identity,
     }
     assert set(shares["groups"]).intersection(groups) == groups
-    assert set(gr["group_name"] for gr in shares["shares"]).issuperset(
-        {Alice.identity, Bob.identity, Joe.identity, Workgroup.identity, admin_login()}
+    assert {gr["group_name"] for gr in shares["shares"]}.issuperset(
+        {
+            Alice.identity,
+            Bob.identity,
+            Joe.identity,
+            Workgroup.identity,
+            admin_login(),
+        }
     )

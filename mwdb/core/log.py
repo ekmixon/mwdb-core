@@ -22,7 +22,7 @@ class InlineFormatter(logging.Formatter):
             if k == "arguments":
                 v = v.to_dict()
             if k not in logging.makeLogRecord({"message": ""}).__dict__:
-                extra_list.append("{}:{}".format(k, v))
+                extra_list.append(f"{k}:{v}")
 
         return " - ".join([super().format(record), *extra_list])
 

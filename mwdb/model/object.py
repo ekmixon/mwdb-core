@@ -783,9 +783,8 @@ class Object(db.Model):
                 permission_filter, g.auth_user.is_member(ObjectPermission.group_id)
             )
 
-        shares = (
+        return (
             db.session.query(ObjectPermission)
             .filter(permission_filter)
             .order_by(ObjectPermission.access_time.desc())
         ).all()
-        return shares

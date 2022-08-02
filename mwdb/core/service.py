@@ -76,7 +76,6 @@ class Service(Api):
             return self.handle_error(e)
         except Exception:
             logger.exception("Exception from handle_error occurred")
-            pass
         # If something went wrong - fallback to original behavior
         return super().error_router(original_handler, e)
 

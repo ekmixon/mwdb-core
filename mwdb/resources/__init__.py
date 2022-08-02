@@ -109,9 +109,9 @@ def get_shares_for_upload(upload_as):
     """
     if upload_as == "*":
         # If '*' is provided: share with all user's groups except 'public'
-        share_with = [group for group in g.auth_user.groups if group.workspace]
+        return [group for group in g.auth_user.groups if group.workspace]
     elif upload_as == "private":
-        share_with = [Group.get_by_name(g.auth_user.login)]
+        return [Group.get_by_name(g.auth_user.login)]
     else:
         share_group = Group.get_by_name(upload_as)
         # Does group exist?
@@ -125,6 +125,4 @@ def get_shares_for_upload(upload_as):
         # Is group pending?
         if share_group.pending_group is True:
             raise NotFound(f"Group {upload_as} is pending")
-        share_with = [share_group, Group.get_by_name(g.auth_user.login)]
-
-    return share_with
+        return [share_group, Group.get_by_name(g.auth_user.login)]

@@ -132,7 +132,7 @@ class File(Object):
 
         if app_config.mwdb.hash_pathing:
             # example: uploads/9/f/8/6/9f86d0818...
-            upload_path = os.path.join(upload_path, *list(sample_sha256)[0:4])
+            upload_path = os.path.join(upload_path, *list(sample_sha256)[:4])
 
         if app_config.mwdb.storage_provider == StorageProviderType.DISK:
             upload_path = os.path.abspath(upload_path)
@@ -161,8 +161,7 @@ class File(Object):
         ):
             return self.upload_stream.name
 
-        fd_path = get_fd_path(self.upload_stream)
-        if fd_path:
+        if fd_path := get_fd_path(self.upload_stream):
             return fd_path
 
         # If not a file (BytesIO), copy contents to the named temporary file
@@ -180,15 +179,12 @@ class File(Object):
         File stream must be closed using File.close.
         """
         if self.upload_stream is not None:
-            # If file contents are uploaded in this request,
-            # try to reuse the existing file instead of downloading it from Minio.
             if isinstance(self.upload_stream, io.BytesIO):
                 return io.BytesIO(self.upload_stream.getbuffer())
-            else:
-                dupfd = os.dup(self.upload_stream.fileno())
-                stream = os.fdopen(dupfd, "rb")
-                stream.seek(0, os.SEEK_SET)
-                return stream
+            dupfd = os.dup(self.upload_stream.fileno())
+            stream = os.fdopen(dupfd, "rb")
+            stream.seek(0, os.SEEK_SET)
+            return stream
         if app_config.mwdb.storage_provider == StorageProviderType.S3:
             return get_minio_client(
                 app_config.mwdb.s3_storage_endpoint,
@@ -224,8 +220,7 @@ class File(Object):
                 yield from fh.stream(chunk_size)
             else:
                 while True:
-                    chunk = fh.read(chunk_size)
-                    if chunk:
+                    if chunk := fh.read(chunk_size):
                         yield chunk
                     else:
                         return
@@ -262,7 +257,5 @@ class File(Object):
         try:
             download_req = serializer.loads(download_token)
             return File.get(download_req["identifier"]).first()
-        except SignatureExpired:
-            return None
         except BadSignature:
             return None

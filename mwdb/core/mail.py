@@ -13,7 +13,7 @@ def create_message(kind, subject, recipient_email, **params) -> EmailMessage:
     template_path = f"{app_config.mwdb.mail_templates_folder}/{kind}.txt"
 
     if not os.path.exists(template_path):
-        raise MailError("Text template file not found: {}".format(template_path))
+        raise MailError(f"Text template file not found: {template_path}")
 
     with open(template_path, "r") as f:
         template = f.read()

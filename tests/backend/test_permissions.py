@@ -14,11 +14,11 @@ def test_manage_users():
         Bob.session().request(*args, **kwargs)
 
     user_login = random_name()
-    user_email = random_name() + "@" + random_name() + ".com"
+    user_email = f"{random_name()}@{random_name()}.com"
     group_name = random_name()
 
     request("GET", "/user")
-    request("GET", "/user/"+admin_login())
+    request("GET", f"/user/{admin_login()}")
     request("POST", "/user/{}".format(user_login), json={"email": user_email, "additional_info": "Test user"})
     request("PUT", "/user/{}".format(user_login), json={"email": user_email, "additional_info": "Test user"})
 
@@ -72,11 +72,14 @@ def test_sharing_objects():
     Sample = testCase.new_sample("Sample")
     Sample.create(Bob)
 
-    Bob.session().request("GET", "/object/{}/share".format(Sample.dhash))
+    Bob.session().request("GET", f"/object/{Sample.dhash}/share")
 
     Sample.should_not_access(Alice)
 
-    Bob.session().request("PUT", "/object/{}/share".format(Sample.dhash), json={"group": Alice.identity})
+    Bob.session().request(
+        "PUT", f"/object/{Sample.dhash}/share", json={"group": Alice.identity}
+    )
+
 
     Sample.should_access(Alice)
 

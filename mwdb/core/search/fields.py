@@ -37,20 +37,19 @@ def get_term_value(node: Term) -> str:
     :param node: luqum.Term object
     :return: Unescaped value
     """
-    if node.has_wildcard():
-        wildcard_map = {"*": "%", "?": "_"}
-
-        # Escape already contained SQL wildcards
-        node_value = re.sub(r"([%_])", r"\\\1", node.value)
-        # Transform unescaped Lucene wildcards to SQL form
-        node_value = Term.WILDCARDS_PATTERN.sub(
-            lambda m: wildcard_map[m.group(0)], node_value
-        )
-        # Unescape Lucene escaped special characters
-        node_value = Term.WORD_ESCAPED_CHARS.sub(r"\1", node_value)
-        return node_value
-    else:
+    if not node.has_wildcard():
         return node.unescaped_value
+    wildcard_map = {"*": "%", "?": "_"}
+
+    # Escape already contained SQL wildcards
+    node_value = re.sub(r"([%_])", r"\\\1", node.value)
+    # Transform unescaped Lucene wildcards to SQL form
+    node_value = Term.WILDCARDS_PATTERN.sub(
+        lambda m: wildcard_map[m.group(0)], node_value
+    )
+    # Unescape Lucene escaped special characters
+    node_value = Term.WORD_ESCAPED_CHARS.sub(r"\1", node_value)
+    return node_value
 
 
 class BaseField:
@@ -96,12 +95,11 @@ class SizeField(BaseField):
         def parse_size(size):
             if size.isdigit():
                 return size
-            else:
-                size = re.match(r"(\d+(?:[.]\d+)?)[ ]?([KMGT]?B)", size.upper())
-                if size is None:
-                    raise UnsupportedGrammarException("Invalid size value")
-                number, unit = size.groups()
-                return int(float(number) * units[unit])
+            size = re.match(r"(\d+(?:[.]\d+)?)[ ]?([KMGT]?B)", size.upper())
+            if size is None:
+                raise UnsupportedGrammarException("Invalid size value")
+            number, unit = size.groups()
+            return int(float(number) * units[unit])
 
         if isinstance(expression, Range):
             low_value = expression.low.value
@@ -317,7 +315,7 @@ class JSONField(BaseField):
             if not asterisk_r:
                 asterisks = ""
             else:
-                asterisk_levels = len(asterisk_r.group(0))
+                asterisk_levels = len(asterisk_r[0])
                 field = field[:-asterisk_levels]
                 asterisks = asterisk_levels * "[*]"
             # Unescape all escaped asterisks
@@ -368,10 +366,9 @@ class DatetimeField(BaseField):
                 return timestamp, timestamp + range_offs
             except ValueError:
                 continue
-        else:
-            raise FieldNotQueryableException(
-                f"Unsupported date-time format ({date_string})"
-            )
+        raise FieldNotQueryableException(
+            f"Unsupported date-time format ({date_string})"
+        )
 
     def get_condition(self, expression: Expression, remainder: List[str]) -> Any:
         if remainder:
@@ -388,9 +385,9 @@ class DatetimeField(BaseField):
                 raise UnsupportedGrammarException(
                     "Exclusive range is not allowed for date-time field"
                 )
-            if expression.low.value == "*" and expression.high.value == "*":
-                return True
             if expression.low.value == "*":
+                if expression.high.value == "*":
+                    return True
                 high = self._get_date_range(expression.high)[1]
                 return self.column < high
             if expression.high.value == "*":
@@ -399,11 +396,11 @@ class DatetimeField(BaseField):
 
             low = self._get_date_range(expression.low)[0]
             high = self._get_date_range(expression.high)[1]
+        elif expression.has_wildcard():
+            raise UnsupportedGrammarException(
+                "Wildcards are not allowed for date-time field"
+            )
         else:
-            if expression.has_wildcard():
-                raise UnsupportedGrammarException(
-                    "Wildcards are not allowed for date-time field"
-                )
             low, high = self._get_date_range(expression)
 
         return and_(self.column >= low, self.column < high)

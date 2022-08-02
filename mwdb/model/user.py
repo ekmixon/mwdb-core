@@ -152,11 +152,8 @@ class User(db.Model):
         s = TimedJSONWebSignatureSerializer(app_config.mwdb.secret_key)
         try:
             data = s.loads(token)
-        except SignatureExpired:
-            return None
         except BadSignature:
             return None
-
         try:
             user_obj = User.query.filter(User.login == data["login"]).one()
         except NoResultFound:

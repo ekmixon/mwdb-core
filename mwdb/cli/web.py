@@ -39,9 +39,7 @@ def npm_build_web(target_dir):
             elif os.path.isdir(src):
                 shutil.copytree(src, dst)
             else:
-                raise RuntimeError(
-                    "Critical error: expected file {} doesn't exist".format(path)
-                )
+                raise RuntimeError(f"Critical error: expected file {path} doesn't exist")
 
         # Run npm install for web core
         logger.info("Installing dependencies")

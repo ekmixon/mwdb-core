@@ -319,27 +319,24 @@ def test_uploader_share():
 
     # Look for uploader entry in SampleA shares
     assert any(
-        [
-            (
-                share["group_name"] == Alice.identity
-                and share["related_user_login"] == Alice.identity
-                and share["related_object_dhash"] == SampleA.dhash
-                and share["reason_type"] == "added"
-            )
-            for share in a_shares
-        ]
+        (
+            share["group_name"] == Alice.identity
+            and share["related_user_login"] == Alice.identity
+            and share["related_object_dhash"] == SampleA.dhash
+            and share["reason_type"] == "added"
+        )
+        for share in a_shares
     )
+
     # Look for uploader entry in SampleB shares
     assert any(
-        [
-            (
-                share["group_name"] == Alice.identity
-                and share["related_user_login"] == Alice.identity
-                and share["related_object_dhash"] == SampleB.dhash
-                and share["reason_type"] == "added"
-            )
-            for share in b_shares
-        ]
+        (
+            share["group_name"] == Alice.identity
+            and share["related_user_login"] == Alice.identity
+            and share["related_object_dhash"] == SampleB.dhash
+            and share["reason_type"] == "added"
+        )
+        for share in b_shares
     )
 
 
@@ -418,16 +415,15 @@ def test_removing_relations():
     Alice.session().remove_parent(SampleC.dhash, SampleD.dhash)
     d_shares = Alice.session().get_shares(SampleD.dhash)["shares"]
     assert any(
-        [
-            (
-                share["group_name"] == Alice.identity
-                and share["related_user_login"] == Alice.identity
-                and share["related_object_dhash"] == SampleA.dhash
-                and share["reason_type"] == "added"
-            )
-            for share in d_shares
-        ]
+        (
+            share["group_name"] == Alice.identity
+            and share["related_user_login"] == Alice.identity
+            and share["related_object_dhash"] == SampleA.dhash
+            and share["reason_type"] == "added"
+        )
+        for share in d_shares
     )
+
 
     SampleA.create(Bob)
     SampleF.create(Bob)

@@ -213,8 +213,8 @@ class GroupResource(Resource):
         if group is None:
             raise NotFound("No such group")
 
-        immutable_fields = ["name", "default", "workspace"]
         if group.immutable:
+            immutable_fields = ["name", "default", "workspace"]
             for field in immutable_fields:
                 if obj[field] is not None:
                     raise Forbidden(f"Can't change '{field}', group is immutable")

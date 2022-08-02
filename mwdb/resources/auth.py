@@ -28,9 +28,7 @@ from . import loads_schema, logger, requires_authorization, requires_capabilitie
 
 
 def verify_recaptcha(recaptcha_token):
-    recaptcha_secret = app_config.mwdb.recaptcha_secret
-
-    if recaptcha_secret:
+    if recaptcha_secret := app_config.mwdb.recaptcha_secret:
         try:
             recaptcha_response = requests.post(
                 "https://www.google.com/recaptcha/api/siteverify",

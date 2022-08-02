@@ -69,6 +69,8 @@ class RelationTestObject(RelationTestEntity):
         should_access = should_access or []
         should_not_access = should_not_access or []
 
+
+
         class BoundTestSample(object):
             def __init__(self, sample, children, should_access):
                 self.context = sample.context
@@ -96,8 +98,6 @@ class RelationTestObject(RelationTestEntity):
                 for user in self.context.users:
                     if user in should_access:
                         self.sample.should_access(user)
-                    elif user in should_not_access:
-                        self.sample.should_not_access(user)
                     else:
                         self.sample.should_not_access(user)
                 for child in self.children:
@@ -105,6 +105,7 @@ class RelationTestObject(RelationTestEntity):
 
             def __str__(self):
                 return self.sample.name
+
 
         return BoundTestSample(self, children, should_access)
 
@@ -124,9 +125,7 @@ class RelationTestObject(RelationTestEntity):
             self._access_object(group.session())
         except requests.exceptions.HTTPError as e:
             raise Exception(
-                "{}.should_access({}) failed with {}".format(
-                    str(self), str(group), str(e)
-                )
+                f"{str(self)}.should_access({str(group)}) failed with {str(e)}"
             )
 
     def should_not_access(self, group):
@@ -135,7 +134,7 @@ class RelationTestObject(RelationTestEntity):
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 404:
                 return True
-        raise Exception("{}.should_not_access({}) failed".format(str(self), str(group)))
+        raise Exception(f"{str(self)}.should_not_access({str(group)}) failed")
 
 
 class RelationTestSample(RelationTestObject):

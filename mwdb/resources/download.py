@@ -37,15 +37,14 @@ class DownloadResource(Resource):
             403:
                 description: When file download token is no longer valid
         """
-        file_obj = File.get_by_download_token(access_token)
-        if not file_obj:
+        if file_obj := File.get_by_download_token(access_token):
+            return Response(
+                file_obj.iterate(),
+                content_type="application/octet-stream",
+                headers={"Content-disposition": f"attachment; filename={file_obj.sha256}"},
+            )
+        else:
             raise Forbidden("Download token expired, please re-request download.")
-
-        return Response(
-            file_obj.iterate(),
-            content_type="application/octet-stream",
-            headers={"Content-disposition": f"attachment; filename={file_obj.sha256}"},
-        )
 
 
 class RequestSampleDownloadResource(Resource):

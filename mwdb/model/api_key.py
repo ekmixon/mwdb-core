@@ -31,11 +31,8 @@ class APIKey(db.Model):
         s = JSONWebSignatureSerializer(app_config.mwdb.secret_key)
         try:
             data = s.loads(token)
-        except SignatureExpired:
-            return None
         except BadSignature:
             return None
-
         if "api_key_id" not in data:
             return None
 

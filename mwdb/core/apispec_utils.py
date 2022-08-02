@@ -41,7 +41,7 @@ class ApispecFlaskRestful(BasePlugin):
 
 def deduce_path(resource, **kwargs):
     """Find resource path using provided API or path itself"""
-    api = kwargs.get("api", None)
+    api = kwargs.get("api")
     if not api:
         # flask-restful resource url passed
         return kwargs.get("path").path
@@ -52,27 +52,22 @@ def deduce_path(resource, **kwargs):
         raise APISpecError("Flask-RESTful resource needed")
 
     if api.blueprint:
-        # it is required to have Flask app to be able enumerate routes
-        app = kwargs.get("app")
-        if app:
-            for rule in app.url_map.iter_rules():
-                if rule.endpoint.endswith("." + resource.endpoint):
-                    break
-            else:
-                raise APISpecError(
-                    "Cannot find blueprint resource {}".format(resource.endpoint)
-                )
-        else:
+        if not (app := kwargs.get("app")):
             # Application not initialized yet, fallback to path
             return kwargs.get("path").path
 
+        for rule in app.url_map.iter_rules():
+            if rule.endpoint.endswith(f".{resource.endpoint}"):
+                break
+        else:
+            raise APISpecError(f"Cannot find blueprint resource {resource.endpoint}")
     else:
         for rule in api.app.url_map.iter_rules():
             if rule.endpoint == resource.endpoint:
-                rule.endpoint.endswith("." + resource.endpoint)
+                rule.endpoint.endswith(f".{resource.endpoint}")
                 break
         else:
-            raise APISpecError("Cannot find resource {}".format(resource.endpoint))
+            raise APISpecError(f"Cannot find resource {resource.endpoint}")
 
     return rule.rule
 
@@ -80,12 +75,12 @@ def deduce_path(resource, **kwargs):
 def parse_operations(resource, operations):
     """Parse operations for each method in a flask-restful resource"""
     for method in resource.methods:
-        docstring = getattr(resource, method.lower()).__doc__
-        if docstring:
+        if docstring := getattr(resource, method.lower()).__doc__:
             operation = yaml_utils.load_yaml_from_docstring(docstring)
             if not operation:
                 logging.getLogger(__name__).warning(
-                    "Cannot load docstring for {}/{}".format(resource, method)
+                    f"Cannot load docstring for {resource}/{method}"
                 )
-            operations[method.lower()] = operation or dict()
+
+            operations[method.lower()] = operation or {}
     return operations

@@ -69,8 +69,7 @@ class TagListResource(Resource):
             )
         )
 
-        tag_prefix = obj["query"]
-        if tag_prefix:
+        if tag_prefix := obj["query"]:
             tags = tags.filter(Tag.tag.startswith(tag_prefix, autoescape=True))
         tags = tags.all()
 

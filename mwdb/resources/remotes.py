@@ -484,15 +484,15 @@ class RemoteConfigPushResource(RemotePullResource):
                     raise BadRequest(
                         "'in-blob' key doesn't contain a correct blob reference"
                     )
-                embedded_blob = TextBlob.access(in_blob)
-                if not embedded_blob:
-                    raise NotFound(f"Referenced blob '{in_blob}' doesn't exist")
-                second["in-blob"] = {
-                    "content": embedded_blob.content,
-                    "blob_name": embedded_blob.blob_name,
-                    "blob_type": embedded_blob.blob_type,
-                }
+                if embedded_blob := TextBlob.access(in_blob):
+                    second["in-blob"] = {
+                        "content": embedded_blob.content,
+                        "blob_name": embedded_blob.blob_name,
+                        "blob_type": embedded_blob.blob_type,
+                    }
 
+                else:
+                    raise NotFound(f"Referenced blob '{in_blob}' doesn't exist")
         remote = RemoteAPI(remote_name)
         options = loads_schema(
             request.get_data(as_text=True), RemoteOptionsRequestSchema()

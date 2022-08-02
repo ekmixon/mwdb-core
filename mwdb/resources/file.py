@@ -355,9 +355,7 @@ class FileDownloadResource(Resource):
                     When file doesn't exist, object is not a file
                     or user doesn't have access to this object.
         """
-        access_token = request.args.get("token")
-
-        if access_token:
+        if access_token := request.args.get("token"):
             file_obj = File.get_by_download_token(access_token)
             if not file_obj:
                 raise Forbidden("Download token expired, please re-request download.")

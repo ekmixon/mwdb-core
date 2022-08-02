@@ -98,10 +98,10 @@ class ConfigUploader(ObjectUploader):
                 raise Conflict("Object already exists and is not a blob")
             return blob_obj
         elif isinstance(in_blob, str):
-            blob_obj = TextBlob.access(in_blob)
-            if not blob_obj:
+            if blob_obj := TextBlob.access(in_blob):
+                return blob_obj
+            else:
                 raise NotFound(f"Blob {in_blob} doesn't exist")
-            return blob_obj
         else:
             raise BadRequest(
                 "'in-blob' key must be set to blob SHA256 hash or blob specification"

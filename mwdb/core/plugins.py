@@ -134,10 +134,10 @@ def discover_plugins():
 
     with local_plugins() as plugin_list:
         for plugin_name in plugin_list:
-            spec = importlib.util.find_spec(plugin_name)
-            if not spec:
+            if spec := importlib.util.find_spec(plugin_name):
+                plugins[plugin_name] = spec
+            else:
                 raise RuntimeError(f"Plugin package '{plugin_name}' not found")
-            plugins[plugin_name] = spec
     return plugins
 
 
@@ -189,15 +189,14 @@ def call_hook(hook_name, *args, **kwargs):
     global _plugin_handlers
 
     if not hasattr(PluginHookBase, hook_name):
-        logger.warning("Undefined hook: {}".format(hook_name))
+        logger.warning(f"Undefined hook: {hook_name}")
         return
 
     if not app_config.mwdb.enable_hooks:
         logger.info(
-            "Hook {} will not be ran because enable_hooks is disabled.".format(
-                hook_name
-            )
+            f"Hook {hook_name} will not be ran because enable_hooks is disabled."
         )
+
         return
 
     for hook_handler in _plugin_handlers:
@@ -205,7 +204,7 @@ def call_hook(hook_name, *args, **kwargs):
             fn = getattr(hook_handler, hook_name)
             fn(*args, **kwargs)
         except Exception:
-            logger.exception("Hook {} raised exception".format(hook_name))
+            logger.exception(f"Hook {hook_name} raised exception")
 
 
 hooks = PluginHookBase()
