@@ -32,7 +32,7 @@
     "react-modal": "^3.5.1",
     "react-router": "^5.2.0",
     "react-router-dom": "^5.2.0",
-    "react-scripts": "3.4.0",
+    "react-scripts": "5.0.0",
     "readable-timestamp": "^0.2.0",
     "sha1": "^1.1.1",
     "swagger-ui-react": "3.30.2"
