@@ -1,4 +1,4 @@
-Werkzeug==1.0.1
+Werkzeug==3.0.3
 uwsgi==2.0.19.1
 alembic==1.4.2
 Flask==1.1.2
