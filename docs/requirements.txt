@@ -3,3 +3,4 @@ sphinx-rtd-theme==0.5.2
 jsx-lexer==1.0.0
 # FIX: https://github.com/readthedocs/sphinx_rtd_theme/issues/1115
 docutils==0.16
+requests>=2.32.0 # not directly required, pinned by Snyk to avoid a vulnerability
