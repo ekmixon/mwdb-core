@@ -8,7 +8,7 @@ RUN cd /app \
     && CI=true npm run build \
     && npm cache clean --force
 
-FROM nginx:stable
+FROM nginx:1.26.1-bookworm
 
 ENV PROXY_BACKEND_URL http://mwdb.:8080
 
