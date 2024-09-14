@@ -35,13 +35,16 @@
     "react-scripts": "3.4.0",
     "readable-timestamp": "^0.2.0",
     "sha1": "^1.1.1",
-    "swagger-ui-react": "3.30.2"
+    "swagger-ui-react": "3.30.2",
+    "@snyk/protect": "latest"
   },
   "scripts": {
     "start": "react-app-rewired start",
     "build": "madge --circular --extensions js src/ && react-app-rewired build",
     "test": "react-app-rewired test --env=jsdom",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "prepublish": "npm run snyk-protect",
+    "snyk-protect": "snyk-protect"
   },
   "devDependencies": {
     "customize-cra": "^1.0.0",
@@ -67,5 +70,6 @@
   "prettier": {
     "trailingComma": "es5",
     "tabWidth": 4
-  }
+  },
+  "snyk": true
 }
