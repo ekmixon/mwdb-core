@@ -1,4 +1,4 @@
-FROM python:3.6-alpine
+FROM python:3.14.0a2-alpine
 
 LABEL maintainer="info@cert.pl"
 
